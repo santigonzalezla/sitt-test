@@ -4,7 +4,6 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import cors from 'cors';
 import router from "../src/router/index";
-import environment from "../src/config/index";
 import helmet from "helmet";
 import limiter from "../src/lib/express_rate_limit";
 import {connectToDatabase} from "../src/database/mongoose";
