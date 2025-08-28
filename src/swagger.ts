@@ -27,7 +27,43 @@ const options = {
                 bearerAuth: {
                     type: 'http',
                     scheme: 'bearer',
-                    bearerFormat: 'JWT'
+                    bearerFormat: 'JWT',
+                    description: 'Ingresa tu JWT token en el formato: Bearer <token>'
+                }
+            },
+            schemas: {
+                User: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                            example: '65f8a1b2c3d4e5f6a7b8c9d0'
+                        },
+                        email: {
+                            type: 'string',
+                            format: 'email',
+                            example: 'usuario@ejemplo.com'
+                        },
+                        createdAt: {
+                            type: 'string',
+                            format: 'date-time'
+                        },
+                        updatedAt: {
+                            type: 'string',
+                            format: 'date-time'
+                        }
+                    }
+                },
+                Error: {
+                    type: 'object',
+                    properties: {
+                        code: {
+                            type: 'string'
+                        },
+                        message: {
+                            type: 'string'
+                        }
+                    }
                 }
             }
         },
@@ -42,7 +78,10 @@ const options = {
             }
         ]
     },
-    apis: ['./src/router/*.ts'], // Rutas a los archivos que contienen las anotaciones
+    apis: [
+        './src/router/*.ts',
+        './public/src/router/*.js' // Para el código compilado en Vercel
+    ]
 };
 
 const swaggerSpec = swaggerJsdoc(options);

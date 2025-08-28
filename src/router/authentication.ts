@@ -30,13 +30,13 @@ export default (router: express.Router) =>
      *                 format: email
      *                 minLength: 6
      *                 maxLength: 64
-     *                 example: usuario@ejemplo.com
+     *                 example: admin@admin.com
      *                 description: Email único del usuario
      *               password:
      *                 type: string
      *                 minLength: 2
      *                 maxLength: 128
-     *                 example: mipassword123
+     *                 example: 123
      *                 description: Contraseña del usuario
      *     responses:
      *       200:
@@ -60,7 +60,7 @@ export default (router: express.Router) =>
      *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
      *                     email:
      *                       type: string
-     *                       example: usuario@ejemplo.com
+     *                       example: admin@admin.com
      *                 accessToken:
      *                   type: string
      *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -127,10 +127,10 @@ export default (router: express.Router) =>
      *               email:
      *                 type: string
      *                 format: email
-     *                 example: usuario@ejemplo.com
+     *                 example: admin@admin.com
      *               password:
      *                 type: string
-     *                 example: mipassword123
+     *                 example: 123
      *     responses:
      *       200:
      *         description: Inicio de sesión exitoso
@@ -152,7 +152,7 @@ export default (router: express.Router) =>
      *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
      *                     email:
      *                       type: string
-     *                       example: usuario@ejemplo.com
+     *                       example: admin@admin.com
      *                 accessToken:
      *                   type: string
      *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -168,7 +168,7 @@ export default (router: express.Router) =>
      *                   example: NotFound
      *                 message:
      *                   type: string
-     *                   example: User with email "usuario@ejemplo.com" not found.
+     *                   example: User with email "admin@admin.com" not found.
      */
     router.post(
         '/auth/login',
@@ -292,7 +292,7 @@ export default (router: express.Router) =>
      *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
      *                     email:
      *                       type: string
-     *                       example: usuario@ejemplo.com
+     *                       example: admin@admin.com
      *                 tokenInfo:
      *                   type: object
      *                   properties:
