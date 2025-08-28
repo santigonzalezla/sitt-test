@@ -11,6 +11,8 @@ import limiter from "./src/lib/express_rate_limit";
 import {connectToDatabase} from "./src/database/mongoose";
 import {logger} from "./src/lib/winston";
 import {errorHandler, notFoundHandler} from "./src/middlewares/errorHandler";
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from "./src/swagger";
 
 const app = express();
 
@@ -23,9 +25,11 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(helmet());
 app.use(limiter);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/', router());
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 
 (async () =>
 {

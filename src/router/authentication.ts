@@ -9,6 +9,83 @@ import authenticate from "../middlewares/authenticate";
 
 export default (router: express.Router) =>
 {
+    /**
+     * @swagger
+     * /auth/register:
+     *   post:
+     *     summary: Registrar un nuevo usuario
+     *     tags: [Autenticación]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - email
+     *               - password
+     *             properties:
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 minLength: 6
+     *                 maxLength: 64
+     *                 example: usuario@ejemplo.com
+     *                 description: Email único del usuario
+     *               password:
+     *                 type: string
+     *                 minLength: 2
+     *                 maxLength: 128
+     *                 example: mipassword123
+     *                 description: Contraseña del usuario
+     *     responses:
+     *       200:
+     *         description: Usuario registrado exitosamente
+     *         headers:
+     *           Set-Cookie:
+     *             description: Cookie httpOnly con refresh token
+     *             schema:
+     *               type: string
+     *               example: refreshToken=eyJ...; HttpOnly; Secure; SameSite=Strict
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 user:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
+     *                     email:
+     *                       type: string
+     *                       example: usuario@ejemplo.com
+     *                 accessToken:
+     *                   type: string
+     *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     *       400:
+     *         description: Error de validación
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 code:
+     *                   type: string
+     *                   example: ValidationError
+     *                 errors:
+     *                   type: object
+     *                   additionalProperties:
+     *                     type: object
+     *                     properties:
+     *                       msg:
+     *                         type: string
+     *                       param:
+     *                         type: string
+     *                       location:
+     *                         type: string
+     */
     router.post(
         '/auth/register',
         body('email')
@@ -30,6 +107,69 @@ export default (router: express.Router) =>
         expressValidationError,
         register
     );
+
+    /**
+     * @swagger
+     * /auth/login:
+     *   post:
+     *     summary: Iniciar sesión de usuario
+     *     tags: [Autenticación]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - email
+     *               - password
+     *             properties:
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 example: usuario@ejemplo.com
+     *               password:
+     *                 type: string
+     *                 example: mipassword123
+     *     responses:
+     *       200:
+     *         description: Inicio de sesión exitoso
+     *         headers:
+     *           Set-Cookie:
+     *             description: Cookie httpOnly con refresh token
+     *             schema:
+     *               type: string
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 user:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
+     *                     email:
+     *                       type: string
+     *                       example: usuario@ejemplo.com
+     *                 accessToken:
+     *                   type: string
+     *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     *       400:
+     *         description: Usuario no encontrado o credenciales inválidas
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 code:
+     *                   type: string
+     *                   example: NotFound
+     *                 message:
+     *                   type: string
+     *                   example: User with email "usuario@ejemplo.com" not found.
+     */
     router.post(
         '/auth/login',
         body('email')
@@ -65,6 +205,46 @@ export default (router: express.Router) =>
         expressValidationError,
         login
     );
+
+    /**
+     * @swagger
+     * /auth/refresh:
+     *   post:
+     *     summary: Renovar access token usando refresh token
+     *     tags: [Autenticación]
+     *     description: Requiere cookie httpOnly con refresh token válido
+     *     parameters:
+     *       - in: cookie
+     *         name: refreshToken
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: JWT refresh token almacenado en cookie httpOnly
+     *     responses:
+     *       200:
+     *         description: Token renovado exitosamente
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 accessToken:
+     *                   type: string
+     *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     *       401:
+     *         description: Refresh token inválido o expirado
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 code:
+     *                   type: string
+     *                   example: AuthenticationError
+     *                 message:
+     *                   type: string
+     *                   example: Invalid refresh token
+     */
     router.post(
         '/auth/refresh',
         cookie('refreshToken')
@@ -73,10 +253,93 @@ export default (router: express.Router) =>
         expressValidationError,
         refreshToken
     );
+
+    /**
+     * @swagger
+     * /auth/validate:
+     *   post:
+     *     summary: Validar un access token
+     *     tags: [Autenticación]
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - token
+     *             properties:
+     *               token:
+     *                 type: string
+     *                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+     *                 description: JWT access token a validar
+     *     responses:
+     *       200:
+     *         description: Token válido
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 valid:
+     *                   type: boolean
+     *                   example: true
+     *                 user:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       example: 65f8a1b2c3d4e5f6a7b8c9d0
+     *                     email:
+     *                       type: string
+     *                       example: usuario@ejemplo.com
+     *                 tokenInfo:
+     *                   type: object
+     *                   properties:
+     *                     issuedAt:
+     *                       type: string
+     *                       format: date-time
+     *                       example: 2024-01-15T10:30:00.000Z
+     *                     expiresAt:
+     *                       type: string
+     *                       format: date-time
+     *                       example: 2024-01-15T10:45:00.000Z
+     *       400:
+     *         description: Token faltante
+     *       401:
+     *         description: Token inválido o expirado
+     */
     router.post(
         '/auth/validate',
         validate
     );
+
+    /**
+     * @swagger
+     * /auth/logout:
+     *   post:
+     *     summary: Cerrar sesión de usuario
+     *     tags: [Autenticación]
+     *     security:
+     *       - bearerAuth: []
+     *     description: Elimina el refresh token de la base de datos y limpia la cookie
+     *     responses:
+     *       204:
+     *         description: Sesión cerrada exitosamente
+     *       401:
+     *         description: Token de acceso inválido o faltante
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 code:
+     *                   type: string
+     *                   example: AuthenticationError
+     *                 message:
+     *                   type: string
+     *                   example: Authorization header missing
+     */
     router.post(
         '/auth/logout',
         authenticate,

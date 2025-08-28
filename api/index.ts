@@ -28,7 +28,8 @@ app.use(errorHandler);
 // Conectar a la base de datos una vez
 let isConnected = false;
 
-const connectDB = async () => {
+const connectDB = async () =>
+{
     if (!isConnected) {
         await connectToDatabase();
         isConnected = true;
