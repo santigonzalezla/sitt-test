@@ -72,6 +72,8 @@ export const login = async (req: express.Request, res: express.Response) =>
         });
 
         const salt = random();
+        if (!user.authentication) user.authentication = { salt: '', password: '' };
+
         user.authentication.sessionToken = authentication(salt, user._id.toString());
 
         await user.save();

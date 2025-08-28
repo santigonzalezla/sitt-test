@@ -56,6 +56,8 @@ export default (router: express.Router) =>
 
                 if (!user) throw new Error('User email or password is invalid');
 
+                if (!user.authentication?.salt || !user.authentication?.password) throw new Error('User email or password is invalid');
+
                 const expectedHash = authentication(user.authentication.salt, password);
 
                 if (user.authentication.password !== expectedHash) throw new Error('User email or password is invalid');

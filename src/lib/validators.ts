@@ -5,7 +5,7 @@ export const isValidEmail = (email: string): boolean => {
 
 export const isValidPassword = (password: string): boolean =>
 {
-    return password && password.length >= 2;
+    return Boolean(password && password.length >= 2);
 };
 
 export const validateUserInput = (email: string, password: string) =>
