@@ -8,7 +8,7 @@
     "dev": "nodemon",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "vercel-build": "echo 'No build needed for TypeScript with Vercel'",
+    "vercel-build": "tsc",
     "clean": "rimraf public",
     "prebuild": "npm run clean",
     "postbuild": "npm run copy-assets",
