@@ -22,15 +22,37 @@ app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-// Helmet sin CSP restrictivo para Swagger
+// Helmet con configuración específica para Swagger
 app.use(helmet({
-    contentSecurityPolicy: false
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'"]
+        }
+    }
 }));
 
 app.use(limiter);
 
-// Swagger Documentation con HTML personalizado
+// Endpoint para servir el Swagger JSON spec
+app.get('/swagger.json', (req, res) => {
+    try {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
+        res.json(swaggerSpec);
+    } catch (error) {
+        logger.error('Error serving swagger spec:', error);
+        res.status(500).json({ error: 'Failed to load swagger spec' });
+    }
+});
+
+// Swagger Documentation con configuración mejorada
 app.get('/docs', (req, res) => {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -38,33 +60,71 @@ app.get('/docs', (req, res) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SittTest API Documentation</title>
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
         <style>
-            html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
-            *, *:before, *:after { box-sizing: inherit; }
-            body { margin:0; background: #fafafa; }
-            .swagger-ui .topbar { display: none }
+            html { 
+                box-sizing: border-box; 
+                overflow: -moz-scrollbars-vertical; 
+                overflow-y: scroll; 
+            }
+            *, *:before, *:after { 
+                box-sizing: inherit; 
+            }
+            body { 
+                margin: 0; 
+                background: #fafafa; 
+            }
+            .swagger-ui .topbar { 
+                display: none; 
+            }
+            .swagger-ui .info { 
+                margin: 50px 0; 
+            }
+            .swagger-ui .scheme-container { 
+                background: #fff; 
+                box-shadow: 0 1px 2px 0 rgba(0,0,0,.15); 
+            }
         </style>
     </head>
     <body>
         <div id="swagger-ui"></div>
-        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
-        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
         <script>
         window.onload = function() {
-            const ui = SwaggerUIBundle({
-                spec: ${JSON.stringify(swaggerSpec)},
-                dom_id: '#swagger-ui',
-                deepLinking: true,
-                presets: [
-                    SwaggerUIBundle.presets.apis,
-                    SwaggerUIStandalonePreset
-                ],
-                plugins: [
-                    SwaggerUIBundle.plugins.DownloadUrl
-                ],
-                layout: "StandaloneLayout"
-            });
+            try {
+                const ui = SwaggerUIBundle({
+                    url: '${baseUrl}/swagger.json',
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    plugins: [
+                        SwaggerUIBundle.plugins.DownloadUrl
+                    ],
+                    layout: "StandaloneLayout",
+                    tryItOutEnabled: true,
+                    requestInterceptor: function(request) {
+                        // Asegurar que las requests van al servidor correcto
+                        if (request.url.startsWith('/')) {
+                            request.url = '${baseUrl}' + request.url;
+                        }
+                        return request;
+                    },
+                    responseInterceptor: function(response) {
+                        return response;
+                    }
+                });
+                
+                // Log para debugging
+                console.log('Swagger UI initialized successfully');
+            } catch (error) {
+                console.error('Error initializing Swagger UI:', error);
+                document.getElementById('swagger-ui').innerHTML = 
+                    '<div style="padding: 20px; color: red;">Error loading Swagger UI: ' + error.message + '</div>';
+            }
         };
         </script>
     </body>

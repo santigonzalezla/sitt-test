@@ -14,7 +14,7 @@ const options = {
         },
         servers: [
             {
-                url: 'https://sitt-test.vercel.app',
+                url: 'https://sitt-test.vercel.app/api',
                 description: 'Servidor de producción'
             },
             {
@@ -29,6 +29,108 @@ const options = {
                     scheme: 'bearer',
                     bearerFormat: 'JWT',
                     description: 'Ingresa tu JWT token en el formato: Bearer <token>'
+                },
+                cookieAuth: {
+                    type: 'apiKey',
+                    in: 'cookie',
+                    name: 'auth-token',
+                    description: 'Token de autenticación en cookie'
+                }
+            },
+            schemas: {
+                User: {
+                    type: 'object',
+                    required: ['email', 'username'],
+                    properties: {
+                        id: {
+                            type: 'string',
+                            description: 'ID único del usuario'
+                        },
+                        email: {
+                            type: 'string',
+                            format: 'email',
+                            description: 'Email del usuario'
+                        },
+                        username: {
+                            type: 'string',
+                            description: 'Nombre de usuario'
+                        }
+                    }
+                },
+                LoginRequest: {
+                    type: 'object',
+                    required: ['email', 'password'],
+                    properties: {
+                        email: {
+                            type: 'string',
+                            format: 'email',
+                            example: 'user@example.com'
+                        },
+                        password: {
+                            type: 'string',
+                            format: 'password',
+                            example: 'password123'
+                        }
+                    }
+                },
+                AuthResponse: {
+                    type: 'object',
+                    properties: {
+                        success: {
+                            type: 'boolean',
+                            example: true
+                        },
+                        message: {
+                            type: 'string',
+                            example: 'Login exitoso'
+                        },
+                        user: {
+                            $ref: '#/components/schemas/User'
+                        },
+                        token: {
+                            type: 'string',
+                            description: 'JWT Token'
+                        }
+                    }
+                },
+                Error: {
+                    type: 'object',
+                    properties: {
+                        success: {
+                            type: 'boolean',
+                            example: false
+                        },
+                        message: {
+                            type: 'string',
+                            example: 'Error message'
+                        },
+                        code: {
+                            type: 'string',
+                            example: 'ERROR_CODE'
+                        }
+                    }
+                }
+            },
+            responses: {
+                UnauthorizedError: {
+                    description: 'Token de acceso faltante o inválido',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/Error'
+                            }
+                        }
+                    }
+                },
+                NotFoundError: {
+                    description: 'Recurso no encontrado',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/Error'
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -43,8 +145,15 @@ const options = {
             }
         ]
     },
+    // Para desarrollo TypeScript
     apis: [
-        './src/router/*.ts'
+        './src/router/*.ts',          // Archivos TypeScript en desarrollo
+        './src/controllers/*.ts',     // Controladores TypeScript
+        './api/*.ts',                 // API routes TypeScript
+        './src/router/index.ts',      // Router principal TypeScript
+        './src/router/*.js',          // Fallback para archivos compilados
+        './src/controllers/*.js',     // Fallback compilados
+        './api/*.js'                  // Fallback compilados
     ]
 };
 
