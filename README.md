@@ -3,7 +3,7 @@
 Una API RESTful de autenticación construida con TypeScript, Express.js y MongoDB, desplegada en Vercel.
 
 ## 🔗 URL de Despliegue
-**Base URL:** `https://sitt-test-7w1u.vercel.app`
+**Base URL:** `https://sitt-test.vercel.app/`
 
 ## 🚀 Tecnologías Utilizadas
 
@@ -255,7 +255,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 #### 1. Registrar un nuevo usuario
 ```bash
-curl -X POST https://sitt-test-7w1u.vercel.app/auth/register \
+curl -X POST https://sitt-test.vercel.app/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -265,7 +265,7 @@ curl -X POST https://sitt-test-7w1u.vercel.app/auth/register \
 
 #### 2. Iniciar sesión
 ```bash
-curl -X POST https://sitt-test-7w1u.vercel.app/auth/login \
+curl -X POST https://sitt-test.vercel.app/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
   -d '{
@@ -276,19 +276,19 @@ curl -X POST https://sitt-test-7w1u.vercel.app/auth/login \
 
 #### 3. Obtener usuarios (requiere token)
 ```bash
-curl -X GET https://sitt-test-7w1u.vercel.app/users \
+curl -X GET https://sitt-test.vercel.app/users \
   -H "Authorization: Bearer TU_ACCESS_TOKEN_AQUI"
 ```
 
 #### 4. Renovar token
 ```bash
-curl -X POST https://sitt-test-7w1u.vercel.app/auth/refresh \
+curl -X POST https://sitt-test.vercel.app/refresh \
   -b cookies.txt
 ```
 
 #### 5. Cerrar sesión
 ```bash
-curl -X POST https://sitt-test-7w1u.vercel.app/auth/logout \
+curl -X POST https://sitt-test.vercel.app/auth/logout \
   -H "Authorization: Bearer TU_ACCESS_TOKEN_AQUI" \
   -b cookies.txt
 ```
@@ -296,7 +296,7 @@ curl -X POST https://sitt-test-7w1u.vercel.app/auth/logout \
 ### Con Postman
 
 1. **Configuración inicial:**
-    - Base URL: `https://sitt-test-7w1u.vercel.app`
+    - Base URL: `https://sitt-test.vercel.app/`
     - En Settings → Enable "Automatically follow redirects"
     - En Settings → Enable "Send cookies with requests"
 
@@ -308,7 +308,7 @@ curl -X POST https://sitt-test-7w1u.vercel.app/auth/logout \
 
 3. **Variables de entorno en Postman:**
    ```
-   baseUrl: https://sitt-test-7w1u.vercel.app
+   baseUrl: https://sitt-test.vercel.app/
    accessToken: {{token_obtenido_del_login}}
    ```
 
@@ -318,7 +318,7 @@ curl -X POST https://sitt-test-7w1u.vercel.app/auth/logout \
 2. Configurar variable de entorno:
    ```json
    {
-     "baseUrl": "https://sitt-test-7w1u.vercel.app"
+     "baseUrl": "https://sitt-test.vercel.app/"
    }
    ```
 3. Seguir el mismo flujo que con Postman

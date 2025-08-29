@@ -9,7 +9,6 @@ import limiter from '../src/lib/express_rate_limit';
 import { connectToDatabase } from '../src/database/mongoose';
 import { logger } from '../src/lib/winston';
 import { errorHandler, notFoundHandler } from '../src/middlewares/errorHandler';
-import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '../src/swagger';
 
 const app = express();
@@ -22,24 +21,57 @@ app.use(cors({
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
+
+// Helmet sin CSP restrictivo para Swagger
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https:"]
-        }
-    }
+    contentSecurityPolicy: false
 }));
+
 app.use(limiter);
 
-// Swagger Documentation
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'SittTest API Documentation'
-}));
+// Swagger Documentation con HTML personalizado
+app.get('/docs', (req, res) => {
+    const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SittTest API Documentation</title>
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
+        <style>
+            html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+            *, *:before, *:after { box-sizing: inherit; }
+            body { margin:0; background: #fafafa; }
+            .swagger-ui .topbar { display: none }
+        </style>
+    </head>
+    <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+        <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                spec: ${JSON.stringify(swaggerSpec)},
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout"
+            });
+        };
+        </script>
+    </body>
+    </html>
+    `;
+    res.send(html);
+});
 
 // Routes
 app.use('/', router());
@@ -48,7 +80,7 @@ app.use('/', router());
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Conectar a la base de datos antes de manejar requests
+// Conectar a la base de datos
 let dbConnected = false;
 
 const connectDB = async () => {

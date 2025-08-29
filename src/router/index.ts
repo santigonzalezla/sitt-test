@@ -41,7 +41,7 @@ router.get('/', (req, res) => {
 Una API RESTful de autenticación construida con TypeScript, Express.js y MongoDB.
 
 ## 🔗 URL de Despliegue
-**Base URL:** \`https://sitt-test-7w1u.vercel.app\`
+**Base URL:** \`https://sitt-test.vercel.app\`
 
 ## 📝 Endpoints Principales
 
