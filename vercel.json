@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/index.ts": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
       "source": "/docs",
@@ -33,36 +28,6 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization, X-Requested-With"
-        }
-      ]
-    },
-    {
-      "source": "/docs",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/html"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    },
-    {
-      "source": "/swagger.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
         }
       ]
     }
