@@ -118,6 +118,7 @@ Incluye el token en el header: \`Authorization: Bearer <token>\``;
                     <strong>🚀 API Status:</strong> Online<br>
                     <strong>📅 Timestamp:</strong> ${new Date().toISOString()}<br>
                     <strong>🏷️ Version:</strong> 1.0.0
+                    <strong>Prueba los Endpoints en la documentación:</strong> <p><em>Para documentación interactiva, visita <a href="/docs">/docs</a></em></p>
                 </div>
                 ${htmlContent}
                 <hr>
