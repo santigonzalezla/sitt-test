@@ -14,7 +14,7 @@ const options = {
         },
         servers: [
             {
-                url: 'https://sitt-test.vercel.app/api',
+                url: 'https://sitt-test.vercel.app',
                 description: 'Servidor de producción'
             },
             {
