@@ -10,49 +10,30 @@ import { connectToDatabase } from '../src/database/mongoose';
 import { logger } from '../src/lib/winston';
 import { errorHandler, notFoundHandler } from '../src/middlewares/errorHandler';
 import swaggerSpec from '../src/swagger';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
+// Crear la aplicación Express
 const app = express();
 
 // Middlewares
 app.use(cors({
     credentials: true,
+    origin: true // Permitir cualquier origen en desarrollo
 }));
 
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-// Helmet con configuración específica para Swagger
+// Helmet sin CSP para Swagger
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-            imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'"]
-        }
-    }
+    contentSecurityPolicy: false
 }));
 
 app.use(limiter);
 
-// Endpoint para servir el Swagger JSON spec
-app.get('/swagger.json', (req, res) => {
-    try {
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-
-        res.json(swaggerSpec);
-    } catch (error) {
-        logger.error('Error serving swagger spec:', error);
-        res.status(500).json({ error: 'Failed to load swagger spec' });
-    }
-});
-
-// Swagger Documentation con configuración mejorada
+// Swagger Documentation con HTML personalizado
 app.get('/docs', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
     const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -60,87 +41,59 @@ app.get('/docs', (req, res) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SittTest API Documentation</title>
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
         <style>
-            html { 
-                box-sizing: border-box; 
-                overflow: -moz-scrollbars-vertical; 
-                overflow-y: scroll; 
-            }
-            *, *:before, *:after { 
-                box-sizing: inherit; 
-            }
-            body { 
-                margin: 0; 
-                background: #fafafa; 
-            }
-            .swagger-ui .topbar { 
-                display: none; 
-            }
-            .swagger-ui .info { 
-                margin: 50px 0; 
-            }
-            .swagger-ui .scheme-container { 
-                background: #fff; 
-                box-shadow: 0 1px 2px 0 rgba(0,0,0,.15); 
-            }
+            html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+            *, *:before, *:after { box-sizing: inherit; }
+            body { margin:0; background: #fafafa; }
+            .swagger-ui .topbar { display: none }
         </style>
     </head>
     <body>
         <div id="swagger-ui"></div>
-        <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
-        <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
         <script>
         window.onload = function() {
-            try {
-                const ui = SwaggerUIBundle({
-                    url: '${baseUrl}/swagger.json',
-                    dom_id: '#swagger-ui',
-                    deepLinking: true,
-                    presets: [
-                        SwaggerUIBundle.presets.apis,
-                        SwaggerUIStandalonePreset
-                    ],
-                    plugins: [
-                        SwaggerUIBundle.plugins.DownloadUrl
-                    ],
-                    layout: "StandaloneLayout",
-                    tryItOutEnabled: true,
-                    requestInterceptor: function(request) {
-                        // Asegurar que las requests van al servidor correcto
-                        if (request.url.startsWith('/')) {
-                            request.url = '${baseUrl}' + request.url;
-                        }
-                        return request;
-                    },
-                    responseInterceptor: function(response) {
-                        return response;
-                    }
-                });
-                
-                // Log para debugging
-                console.log('Swagger UI initialized successfully');
-            } catch (error) {
-                console.error('Error initializing Swagger UI:', error);
-                document.getElementById('swagger-ui').innerHTML = 
-                    '<div style="padding: 20px; color: red;">Error loading Swagger UI: ' + error.message + '</div>';
-            }
+            const ui = SwaggerUIBundle({
+                spec: ${JSON.stringify(swaggerSpec)},
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout"
+            });
         };
         </script>
     </body>
     </html>
     `;
+    res.setHeader('Content-Type', 'text/html');
     res.send(html);
 });
 
-// Routes
+// Ruta de prueba para verificar que la API funciona
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Routes principales
 app.use('/', router());
 
 // Error handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Conectar a la base de datos
+// Variable para controlar la conexión a la base de datos
 let dbConnected = false;
 
 const connectDB = async () => {
@@ -151,21 +104,26 @@ const connectDB = async () => {
             logger.info('Database connected successfully');
         } catch (error) {
             logger.error('Database connection failed:', error);
-            throw error;
+            // No lanzar error, permitir que la API funcione sin BD para debug
         }
     }
 };
 
-// Handler para Vercel
-export default async (req: any, res: any) => {
+// Handler principal para Vercel
+export default async (req: VercelRequest, res: VercelResponse) => {
     try {
+        // Conectar a la base de datos
         await connectDB();
-        app(req, res);
+
+        // Pasar la request y response a Express
+        return app(req as any, res as any);
     } catch (error) {
         logger.error('Error in serverless function:', error);
-        res.status(500).json({
+
+        return res.status(500).json({
             code: 'ServerError',
-            message: 'Internal server error'
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error : undefined
         });
     }
 };
